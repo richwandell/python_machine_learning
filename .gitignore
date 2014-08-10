@@ -1,0 +1,7 @@
+*.class
+*.pyc
+*.pyo
+.project
+.pydevproject
+test.py
+test_from_book_01.py
