@@ -58,7 +58,7 @@ if __name__ == "__main__":
     n = NaiveBayesClassifier()
     for d in data:
         n.addSample(d[:len(d)-1], d[-1])
-    n.train()   
+    
     data = cursor.execute("select %s from adult_test" % columns)
     
     total = 0
@@ -68,11 +68,27 @@ if __name__ == "__main__":
         prediction = n.predict(d[:-1])
         if prediction != d[-1]:
             error += 1
-        pp([          
-           d[-1], 
-           prediction, 
-           "Error rate: "+str(100*(float(error)/float(total)))
-        ])
+        print d[-1],prediction,"Error rate: "+str(100*(float(error)/float(total)))[:5]+"%"
+        
+        
+    print "Stephs Prediction:"
+    steph = [
+        'Private', 'Bachelors', 'Married-civ-spouse', 
+        'Prof-specialty', 'Wife', 'White', 'Female', 'United-States', '<=50K'
+    ]    
+    prediction = n.predict(steph[:-1])
+    
+    print prediction, steph[-1]
+    
+    print "Rich's Prediction:"
+    rich = [
+        'Private', 'Bachelors', 'Married-civ-spouse', 
+        'Prof-specialty', 'Husband', 'White', 'Male', 'United-States', '>50K'
+    ]
+    
+    prediction = n.predict(rich[:-1])
+    
+    print prediction, rich[-1]
         
 
     
