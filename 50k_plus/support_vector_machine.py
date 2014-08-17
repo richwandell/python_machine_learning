@@ -3,7 +3,29 @@ import sklearn,sqlite3,pprint
 from sklearn import svm
 from joblib import Parallel, delayed
 
-def createNPRow(row, possibilities, names):
+def createNPRowMulti(possibilities, names, data, num):
+    if num == 0:
+        d = data[:len(data)/2]
+    else:
+        d = data[len(data)/2:]
+    ret = []
+    for row in d:
+        nr = []
+        for i, column in enumerate(row):
+            try:
+                num = possibilities[names[i]].index(column)
+                nr.append(num)
+            except:
+                if isinstance(column, (int, long)):
+                    num = min(possibilities[names[i]], key=lambda x:abs(x-column))
+                    nr.append(num)    
+                    print num, column   
+                else:
+                    print column, "not an int or long"         
+        ret.append([np.array(nr[:-1]), nr[-1]])
+    return ret
+
+def createNPRowSingle(row):
     nr = []
     for i, column in enumerate(row):
         try:
@@ -35,22 +57,25 @@ if __name__ == "__main__":
     relationship, race, sex,
     native_country,
     relation_to_50k_plus"""
-    
-    cursor.execute("select %s from adult_data limit 1" % columns)
-    
+    print "getting pos"
+    cursor.execute("select %s from adult_data limit 1" % columns)    
     names = list(map(lambda x: x[0], cursor.description))    
-    p = Parallel(n_jobs=-1)(delayed(getPossibility)(name) for name in names)
+    p = Parallel(n_jobs=-1,backend="threading")(delayed(getPossibility)(name) for name in names)
     possibilities = {x: y for x, y in p}    
-    data = cursor.execute("select %s from adult_data" % columns).fetchall()    
-    d = Parallel(n_jobs=-1)(delayed(createNPRow)(row, possibilities, names) for row in data)
+    print "got pos getting all data"
+    data = cursor.execute("select %s from adult_data" % columns).fetchall()
+    print "got data making par"    
+    d = Parallel(n_jobs=2)(delayed(createNPRowMulti)(possibilities, names, data, num) for num in range(2))
+    d = d[0]+d[1]    
     X, y = zip(*d)
     X, y = np.array(X), np.array(y)
+    print "got all data fitting"
     clf = svm.SVC()     
     clf.fit(X, y)
-      
+    print "fit"
     errors, success = 0,0
     for row in cursor.execute("select %s from adult_test" % columns):    
-        xd, yd = createNPRow(row,possibilities, names)    
+        xd, yd = createNPRowSingle(row)    
         check = clf.predict(xd)[0]
         prediction = possibilities['relation_to_50k_plus'][check]
         actual = possibilities['relation_to_50k_plus'][yd]
@@ -61,13 +86,13 @@ if __name__ == "__main__":
             match = "no match"
             errors += 1
         print prediction, actual, match, errors, success, "Error rate: "+str(100*float(float(errors) / float(errors + success)))[:5]+'%'
-      
+       
     print "Stephs Prediction:"
     steph = [
         24, 'Private', 'Bachelors', 13, 'Married-civ-spouse', 
         'Prof-specialty', 'Wife', 'White', 'Female', 'United-States', '<=50K'
     ]
-    xd, yd = createNPRow(steph,possibilities, names)
+    xd, yd = createNPRowSingle(steph)
     check = clf.predict(xd)[0]
     prediction = possibilities['relation_to_50k_plus'][check]
     actual = possibilities['relation_to_50k_plus'][yd]
@@ -77,7 +102,7 @@ if __name__ == "__main__":
         32, 'Private', 'Bachelors', 13, 'Married-civ-spouse', 
         'Prof-specialty', 'Husband', 'White', 'Male', 'United-States', '>50K'
     ]
-    xd, yd = createNPRow(rich,possibilities, names)
+    xd, yd = createNPRowSingle(rich)
     check = clf.predict(xd)[0]
     prediction = possibilities['relation_to_50k_plus'][check]
     actual = possibilities['relation_to_50k_plus'][yd]
