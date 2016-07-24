@@ -7,7 +7,7 @@ db = sqlite3.connect('adult.data.db3')
 cursor = db.cursor()
 
 columns = """
-age, workclass, education, education_num, marital_status, occupation, 
+workclass, education, marital_status, occupation,
 relationship, race, sex,
 native_country,
 relation_to_50k_plus"""
@@ -64,7 +64,7 @@ for row in cursor.execute("select %s from adult_test" % columns).fetchall():
  
 print "Stephs Prediction:"
 steph = [
-    24, 'Private', 'Bachelors', 13, 'Married-civ-spouse', 
+    'Private', 'Bachelors', 'Married-civ-spouse',
     'Prof-specialty', 'Wife', 'White', 'Female', 'United-States', '<=50K'
 ]
 xd, yd = createNPRow(steph)
@@ -74,7 +74,7 @@ actual = possibilities['relation_to_50k_plus'][yd]
 print prediction, actual
 print "Rich's Prediction:"
 rich = [
-    32, 'Private', 'Bachelors', 13, 'Married-civ-spouse', 
+    'Private', 'Bachelors', 'Married-civ-spouse',
     'Prof-specialty', 'Husband', 'White', 'Male', 'United-States', '>50K'
 ]
 xd, yd = createNPRow(rich)

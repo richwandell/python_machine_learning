@@ -9,7 +9,7 @@ db = sqlite3.connect('adult.data.db3')
 cursor = db.cursor()
 
 columns = """
-age, workclass, education, education_num, marital_status, occupation, 
+workclass, education, marital_status, occupation,
 relationship, race, sex,
 native_country,
 relation_to_50k_plus"""
@@ -48,12 +48,12 @@ def createNPRow(row):
 
 data = cursor.execute("select %s from adult_data" % columns).fetchall()
 
-dataset = SupervisedDataSet(10, 1)
+dataset = SupervisedDataSet(8, 1)
 for row in data:
     xd, yd = createNPRow(row)       
     dataset.addSample(xd, yd)
 
-nn = buildNetwork(10, 3, 1)
+nn = buildNetwork(8, 3, 1)
 trainer = RPropMinusTrainer(nn)
 trainer.setData(dataset)
 
@@ -64,7 +64,7 @@ for x in range(5):
 errors, success = 0,0
 for row in cursor.execute("select %s from adult_test" % columns).fetchall():    
     xd, yd = createNPRow(row)    
-    check = int(round(nn.activate(xd[:10])[0]))    
+    check = int(round(nn.activate(xd[:8])[0]))
     if check > 1: check = 1
     prediction = possibilities['relation_to_50k_plus'][check]
     actual = possibilities['relation_to_50k_plus'][yd]
@@ -78,7 +78,7 @@ for row in cursor.execute("select %s from adult_test" % columns).fetchall():
    
 print "Stephs Prediction:"
 steph = [
-    24, 'Private', 'Bachelors', 13, 'Married-civ-spouse', 
+    'Private', 'Bachelors', 'Married-civ-spouse',
     'Prof-specialty', 'Wife', 'White', 'Female', 'United-States', '<=50K'
 ]
 xd, yd = createNPRow(steph)
@@ -89,7 +89,7 @@ actual = possibilities['relation_to_50k_plus'][yd]
 print prediction, actual
 print "Rich's Prediction:"
 rich = [
-    32, 'Private', 'Bachelors', 13, 'Married-civ-spouse', 
+    'Private', 'Bachelors', 'Married-civ-spouse',
     'Prof-specialty', 'Husband', 'White', 'Male', 'United-States', '>50K'
 ]
 xd, yd = createNPRow(rich)

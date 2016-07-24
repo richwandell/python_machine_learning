@@ -53,7 +53,7 @@ if __name__ == "__main__":
     cursor = db.cursor()
     
     columns = """
-    age, workclass, education, education_num, marital_status, occupation, 
+    workclass, education, marital_status, occupation,
     relationship, race, sex,
     native_country,
     relation_to_50k_plus"""
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     clf = svm.SVC()     
     clf.fit(X, y)
     print "fit"
-    errors, success = 0,0
+    errors, success, total = 0, 0, 0
     for row in cursor.execute("select %s from adult_test" % columns):    
         xd, yd = createNPRowSingle(row)    
         check = clf.predict(xd)[0]
@@ -85,11 +85,13 @@ if __name__ == "__main__":
         else:
             match = "no match"
             errors += 1
+        total += 1
         print prediction, actual, match, errors, success, "Error rate: "+str(100*float(float(errors) / float(errors + success)))[:5]+'%'
+    print "Total: " + str(total) + " Errors: " + str(errors) + " Success: " + str(success)
        
     print "Stephs Prediction:"
     steph = [
-        24, 'Private', 'Bachelors', 13, 'Married-civ-spouse', 
+        'Private', 'Bachelors', 'Married-civ-spouse',
         'Prof-specialty', 'Wife', 'White', 'Female', 'United-States', '<=50K'
     ]
     xd, yd = createNPRowSingle(steph)
@@ -99,7 +101,7 @@ if __name__ == "__main__":
     print prediction, actual
     print "Rich's Prediction:"
     rich = [
-        32, 'Private', 'Bachelors', 13, 'Married-civ-spouse', 
+        'Private', 'Bachelors', 'Married-civ-spouse',
         'Prof-specialty', 'Husband', 'White', 'Male', 'United-States', '>50K'
     ]
     xd, yd = createNPRowSingle(rich)
